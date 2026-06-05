@@ -3,8 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme.dart';
+import 'dart:ui' as ui;
 import '../Services/alpaca_service.dart';
 import 'package:mindful_curator/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
+import '../Utils/currency_formatter.dart'; // Adjust path based on your actual directory structure
 
 /// Settings screen where user connects their Alpaca account
 class AlpacaSettingsScreen extends StatefulWidget {
@@ -85,10 +88,10 @@ class _AlpacaSettingsScreenState extends State<AlpacaSettingsScreen> {
               Text(l10n.alpacaHowToTitle,
                   style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary, fontSize: 16)),
               const SizedBox(height: 12),
-              _step('1', l10n.alpacaStep1),
-              _step('2', l10n.alpacaStep2),
-              _step('3', l10n.alpacaStep3),
-              _step('4', l10n.alpacaStep4),
+              _step(1, l10n.alpacaStep1),
+              _step(2, l10n.alpacaStep2),
+              _step(3, l10n.alpacaStep3),
+              _step(4, l10n.alpacaStep4),
               const SizedBox(height: 8),
               Text(
                 l10n.alpacaPaperInfo,
@@ -130,6 +133,7 @@ class _AlpacaSettingsScreenState extends State<AlpacaSettingsScreen> {
           const SizedBox(height: 8),
           TextField(
             controller: _keyCtrl,
+            textDirection: ui.TextDirection.ltr,
             decoration: InputDecoration(
               hintText: l10n.alpacaApiKeyHint,
               hintStyle: const TextStyle(color: AppTheme.outlineVariant),
@@ -149,6 +153,7 @@ class _AlpacaSettingsScreenState extends State<AlpacaSettingsScreen> {
           TextField(
             controller: _secretCtrl,
             obscureText: _obscure,
+            textDirection: ui.TextDirection.ltr,
             decoration: InputDecoration(
               hintText: l10n.alpacaSecretHint,
               hintStyle: const TextStyle(color: AppTheme.outlineVariant),
@@ -210,9 +215,18 @@ class _AlpacaSettingsScreenState extends State<AlpacaSettingsScreen> {
                 Text(l10n.alpacaConnected, style: TextStyle(fontWeight: FontWeight.bold,
                     color: AppTheme.primary, fontSize: 16)),
                 const SizedBox(height: 8),
-                _infoRow(l10n.alpacaCash, '\$${_testResult!.cash.toStringAsFixed(2)}'),
-                _infoRow(l10n.alpacaBuyingPower, '\$${_testResult!.buyingPower.toStringAsFixed(2)}'),
-                _infoRow(l10n.alpacaPortfolioValue, '\$${_testResult!.portfolioValue.toStringAsFixed(2)}'),
+                Builder(
+                    builder: (context) {
+                      final localeStr = Localizations.localeOf(context).languageCode;
+                      return Column(
+                        children: [
+                          _infoRow(l10n.alpacaCash, CurrencyFormatter.format(_testResult!.cash, localeStr)),
+                          _infoRow(l10n.alpacaBuyingPower, CurrencyFormatter.format(_testResult!.buyingPower, localeStr)),
+                          _infoRow(l10n.alpacaPortfolioValue, CurrencyFormatter.format(_testResult!.portfolioValue, localeStr)),
+                        ],
+                      );
+                    }
+                ),
                 _infoRow(l10n.alpacaStatus, _testResult!.status.toUpperCase()),
               ]),
             ),
@@ -222,19 +236,25 @@ class _AlpacaSettingsScreenState extends State<AlpacaSettingsScreen> {
     );
   }
 
-  Widget _step(String num, String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Row(children: [
-      Container(
-        width: 22, height: 22,
-        decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-        child: Center(child: Text(num, style: const TextStyle(color: Colors.white,
-            fontSize: 11, fontWeight: FontWeight.bold))),
-      ),
-      const SizedBox(width: 10),
-      Expanded(child: Text(text, style: const TextStyle(color: AppTheme.onSurface, fontSize: 13))),
-    ]),
-  );
+  Widget _step(int num, String text) {
+    final locale = Localizations.localeOf(context).languageCode;
+    // Add the extension to the end of the NumberFormat!
+    final formattedNum = NumberFormat('#', locale).format(num).toLocalizedDigits(locale);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        Container(
+          width: 22, height: 22,
+          decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+          child: Center(child: Text(formattedNum, style: const TextStyle(color: Colors.white,
+              fontSize: 11, fontWeight: FontWeight.bold))),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: Text(text, style: const TextStyle(color: AppTheme.onSurface, fontSize: 13))),
+      ]),
+    );
+  }
 
   Widget _modeChip(String label, bool isPaper) => GestureDetector(
     onTap: () => setState(() => _paperMode = isPaper),

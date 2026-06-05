@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import 'package:mindful_curator/l10n/app_localizations.dart';
+import '../utils/error_resolver.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,10 +45,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
 
-      if (error != null) {
+
+
+      if (error != null && error.errorKey != null && error.errorKey!.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error),
+            content: Text(
+              context.translateError(error.errorKey, error.errorArgs),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -66,10 +71,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
 
-      if (error != null) {
+
+
+      if (error != null && error.errorKey != null && error.errorKey!.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error),
+            content: Text(
+              context.translateError(error.errorKey, error.errorArgs),
+            ), // Wrapped correctly here
             backgroundColor: Colors.red,
           ),
         );
@@ -163,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: l10n.emailAddress,
-                            hintText: 'you@example.com',
+                            hintText: l10n.emailHint,
                             prefixIcon: const Icon(Icons.email_outlined),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -189,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             labelText: l10n.password,
-                            hintText: 'Enter your password',
+                            hintText: l10n.passwordHintLogin,
                             prefixIcon: const Icon(Icons.lock_outlined),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -223,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Forgot Password Link
                         Align(
-                          alignment: Alignment.centerRight,
+                          alignment: AlignmentDirectional.centerEnd,
                           child: TextButton(
                             onPressed: () {
                               // Navigate to Forgot Password Screen

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../models/budget_model.dart';
 import 'package:mindful_curator/l10n/app_localizations.dart';
+import '../utils/currency_formatter.dart'; // 👈 1. Import the extension
 
 /// Generates a human-readable insight and icon for a single budget category
 /// based on how much has been spent relative to the allocated amount and
@@ -20,13 +21,17 @@ class BudgetInsightHelper {
     final remaining = budget.remaining;
     final spent = budget.spent;
     final allocated = budget.allocated;
+
     final l10n = AppLocalizations.of(context)!;
+    // 👈 2. Get the current active language (e.g., 'ar')
+    final locale = Localizations.localeOf(context).languageCode;
 
     // ── Fully used budget ───────────────────────────────────────
     if (spent == allocated && daysLeftInMonth > 0) {
       return InsightResult(
+        // 👈 Apply extension to daysLeftInMonth
         text: l10n.budgetFullyUsedInsight(
-          daysLeftInMonth.toString(),
+          daysLeftInMonth.toString().toLocalizedDigits(locale),
         ),
         icon: Icons.lock_clock_rounded,
         color: const Color(0xFFE65100),
@@ -37,8 +42,9 @@ class BudgetInsightHelper {
     if (spent > allocated) {
       final over = spent - allocated;
       return InsightResult(
+        // 👈 Pass locale to _fmt
         text: l10n.overBudgetInsight(
-          _fmt(over),
+          _fmt(over, locale),
         ),
         icon: Icons.warning_rounded,
         color: const Color(0xFFD32F2F),
@@ -49,7 +55,7 @@ class BudgetInsightHelper {
     if (ratio >= 0.90) {
       return InsightResult(
         text: l10n.nearlyAtLimitInsight(
-          _fmt(remaining),
+          _fmt(remaining, locale),
         ),
         icon: Icons.error_outline_rounded,
         color: const Color(0xFFF57C00),
@@ -59,9 +65,10 @@ class BudgetInsightHelper {
     // ── Warning: used 75-90% ─────────────────────────────────────────────────
     if (ratio >= 0.75) {
       return InsightResult(
+        // 👈 Apply extension to both numbers
         text: l10n.usedPercentInsight(
-          ((ratio * 100).round()).toString(),
-          daysLeftInMonth.toString(),
+          ((ratio * 100).round()).toString().toLocalizedDigits(locale),
+          daysLeftInMonth.toString().toLocalizedDigits(locale),
         ),
         icon: Icons.trending_up_rounded,
         color: const Color(0xFFF9A825),
@@ -72,7 +79,7 @@ class BudgetInsightHelper {
     if (ratio >= 0.50) {
       return InsightResult(
         text: l10n.halfwayBudgetInsight(
-          _fmt(remaining),
+          _fmt(remaining, locale),
         ),
         icon: Icons.track_changes_rounded,
         color: const Color(0xFF0288D1),
@@ -83,7 +90,7 @@ class BudgetInsightHelper {
     if (daysLeftInMonth <= 7 && ratio < 0.50) {
       return InsightResult(
         text: l10n.savedThisMonthInsight(
-          _fmt(remaining),
+          _fmt(remaining, locale),
         ),
         icon: Icons.savings_rounded,
         color: const Color(0xFF388E3C),
@@ -94,7 +101,7 @@ class BudgetInsightHelper {
     if (spent == 0) {
       return InsightResult(
         text: l10n.noSpendingInsight(
-          _fmt(allocated),
+          _fmt(allocated, locale),
         ),
         icon: Icons.account_balance_wallet_outlined,
         color: const Color(0xFF757575),
@@ -104,7 +111,7 @@ class BudgetInsightHelper {
     // ── Default: healthy spending ────────────────────────────────────────────
     return InsightResult(
       text: l10n.onTrackInsight(
-        _fmt(remaining),
+        _fmt(remaining, locale),
       ),
       icon: Icons.check_circle_outline_rounded,
       color: const Color(0xFF43A047),
@@ -137,7 +144,9 @@ class BudgetInsightHelper {
     return results;
   }
 
-  static String _fmt(double amount) => amount.toStringAsFixed(0);
+  // 👈 3. Update the _fmt helper to accept locale and apply the extension
+  static String _fmt(double amount, String locale) =>
+      amount.toStringAsFixed(0).toLocalizedDigits(locale);
 }
 
 class InsightResult {

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../services/auth_service.dart';
 import 'package:mindful_curator/l10n/app_localizations.dart';
-
+import '../utils/error_resolver.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -50,11 +50,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
 
-      if (error != null) {
+
+      if (error != null && error.errorKey != null && error.errorKey!.isNotEmpty) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error),
+            content: Text(
+              context.translateError(error.errorKey, error.errorArgs),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -79,10 +82,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
 
-      if (error != null) {
+
+      if (error != null && error.errorKey != null && error.errorKey!.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error),
+            content: Text(
+              context.translateError(error.errorKey, error.errorArgs),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -99,7 +105,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.primary),
+          icon: Icon(
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.arrow_forward
+                : Icons.arrow_back,
+            color: AppTheme.primary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -237,6 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          textDirection: TextDirection.ltr, // to make the email field left to right even in arabic layout
                           decoration: InputDecoration(
                             labelText: l10n.emailAddress,
                             hintText: l10n.emailHint,
@@ -263,9 +275,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          textDirection: TextDirection.ltr, // to make the password field left to right even in arabic layout
                           decoration: InputDecoration(
                             labelText: l10n.password,
-                            hintText: l10n.passwordHint,
+                            hintText: l10n.passwordHintRegister,
                             prefixIcon: const Icon(Icons.lock_outlined),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -301,6 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
+                          textDirection: TextDirection.ltr, // to make the password field left to right even in arabic layout
                           decoration: InputDecoration(
                             labelText: l10n.confirmPasswordHint,
                             hintText: l10n.confirmPasswordHint,
@@ -379,11 +393,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        l10n.alreadyHaveAccount + ' ',
+                        l10n.alreadyHaveAccount,
                         style: TextStyle(
                           color: AppTheme.onSurfaceVariant,
                         ),
                       ),
+                      const SizedBox(width: 4),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 style: TextButton.styleFrom(
